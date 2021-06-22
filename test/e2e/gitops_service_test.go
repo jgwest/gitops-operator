@@ -299,11 +299,11 @@ func validateMachineConfigUpdates(t *testing.T) {
 
 	time.Sleep(5 * time.Second)
 
-	if err = helper.ApplicationHealthStatus("image", "openshift-gitops"); err != nil {
+	if helper.ApplicationHealthStatus("image", "openshift-gitops"); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = helper.ApplicationSyncStatus("image", "openshift-gitops"); err != nil {
+	if helper.ApplicationSyncStatus("image", "openshift-gitops"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -556,17 +556,16 @@ func validateClusterConfigChange(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	existingConfigMap := &corev1.ConfigMap{}
 	err = wait.Poll(time.Second*1, time.Second*60, func() (bool, error) {
-		if helper.ApplicationHealthStatus("scheduler", "openshift-gitops"); err != nil {
+		if err := helper.ApplicationHealthStatus("policy-configmap", "openshift-gitops"); err != nil {
 			t.Log(err)
 			return false, nil
 		}
-		if helper.ApplicationSyncStatus("scheduler", "openshift-gitops"); err != nil {
+		if err := helper.ApplicationSyncStatus("policy-configmap", "openshift-gitops"); err != nil {
 			t.Log(err)
 			return false, nil
 		}
-		existingConfigMap := &corev1.ConfigMap{}
 		if err := f.Client.Get(context.TODO(), types.NamespacedName{Name: "policy-configmap", Namespace: "openshift-config"}, existingConfigMap); err != nil {
 			t.Log(err)
 			return false, nil
