@@ -544,6 +544,18 @@ func validateClusterConfigChange(t *testing.T) {
 	defer ctx.Cleanup()
 	f := framework.Global
 
+	// Wait for the default project to exist; this avoids a race condition where the Application
+	// can be created before the Project that it targets.
+	if err := wait.Poll(time.Second*5, time.Minute*5, func() (bool, error) {
+		if status, err := helper.ProjectExists("default", "openshift-gitops"); !status {
+			t.Log(err)
+			return false, nil
+		}
+		return true, nil
+	}); err != nil {
+		t.Fatalf("project never existed %v", err)
+	}
+
 	schedulerYAML := filepath.Join("test", "yamls", "scheduler_appcr.yaml")
 	ocPath, err := exec.LookPath("oc")
 	if err != nil {
@@ -551,13 +563,13 @@ func validateClusterConfigChange(t *testing.T) {
 	}
 
 	cmd := exec.Command(ocPath, "apply", "-f", schedulerYAML)
-	err = cmd.Run()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal(err, string(output))
 	}
-	err = wait.Poll(time.Second*1, time.Minute*15, func() (bool, error) {
-		time.Sleep(1 * time.Minute)
-		if err := helper.ApplicationHealthStatus("scheduler", "openshift-gitops"); err != nil {
+
+	err = wait.Poll(time.Second*5, time.Minute*2, func() (bool, error) {
+		if err := helper.ApplicationHealthStatus("policy-configmap", "openshift-gitops"); err != nil {
 			t.Log(err)
 			return false, nil
 		}
@@ -574,7 +586,7 @@ func validateClusterConfigChange(t *testing.T) {
 	namespacedName := types.NamespacedName{Name: "policy-configmap", Namespace: "openshift-config"}
 	existingConfigMap := &corev1.ConfigMap{}
 
-	err = wait.Poll(time.Second*1, time.Second*60, func() (bool, error) {
+	err = wait.Poll(time.Second*1, time.Minute*1, func() (bool, error) {
 		if err := f.Client.Get(context.TODO(), namespacedName, existingConfigMap); err != nil {
 			t.Log(err)
 			return false, nil
