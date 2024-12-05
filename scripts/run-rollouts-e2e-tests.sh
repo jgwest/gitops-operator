@@ -12,7 +12,7 @@ function wait_until_pods_running() {
   # Wait for there to be only a single Pod line in 'oc get pods' (there should be no more 'terminating' pods, etc)
   timeout="true"
   for i in {1..30}; do
-    local num_pods="$(oc get pods --no-headers -n $1 | wc -l 2>/dev/null)"
+    local num_pods="$(oc get pods --no-headers -n $1 | grep openshift-gitops-operator-controller-manager | wc -l 2>/dev/null)"
 
     # Check the number of lines
     if [[ "$num_lines" == "1" ]]; then
@@ -29,7 +29,7 @@ function wait_until_pods_running() {
   fi
 
   for i in {1..150}; do # timeout after 5 minutes
-    local pods="$(oc get pods --no-headers -n $1 2>/dev/null)"
+    local pods="$(oc get pods --no-headers -n $1 | grep openshift-gitops-operator-controller-manager 2>/dev/null)"
     # write it to tempfile
     TempFile=$(mktemp)
     oc get pods --no-headers -n $1 2>/dev/null >$TempFile
