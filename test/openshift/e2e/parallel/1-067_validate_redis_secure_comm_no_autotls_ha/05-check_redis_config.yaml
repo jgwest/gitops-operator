@@ -2,6 +2,24 @@ apiVersion: kuttl.dev/v1beta1
 kind: TestStep
 commands:
 - script: |
+    # Wait 120 seconds for one of the expected strings to appear, before we check the other strings
+    timer=0
+    while [ true ]; do
+      if [[ $timer -eq 120 ]]; then
+        echo "Was not able to locate expected string within 120 seconds"
+        exit 1
+      fi
+
+      oc exec -i pod/argocd-redis-ha-server-0 -n $NAMESPACE -c redis -- grep "tls-key-file /app/config/redis/tls/tls.key"
+      if [ $? -eq 0 ]; then
+          echo "Success: We found the string we were waiting for"
+          break
+      fi
+
+      timer=$((timer+5))
+      sleep 5
+    done
+
     set -e
 
     expected_redis_config=(
