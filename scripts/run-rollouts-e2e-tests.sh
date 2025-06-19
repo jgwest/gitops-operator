@@ -154,13 +154,13 @@ ROLLOUTS_TMP_DIR=$(mktemp -d)
 
 cd $ROLLOUTS_TMP_DIR
 
-git clone https://github.com/argoproj-labs/argo-rollouts-manager
+git clone https://github.com/jgwest/argo-rollouts-manager
 
 cd "$ROLLOUTS_TMP_DIR/argo-rollouts-manager"
 
 # This commit value will be automatically updated by calling 'hack/upgrade-rollouts-manager/go-run.sh':
 # - It should always point to the same argo-rollouts-manager commit that is referenced in go.mod of gitops-operator (which will usually be the most recent argo-rollouts-manager commit)
-TARGET_ROLLOUT_MANAGER_COMMIT=ee5dc2da6990ba257bf71dee279c14efeec124c0
+TARGET_ROLLOUT_MANAGER_COMMIT=modified-version-of-ee5dc2d-june-2025
 
 # This commit value will be automatically updated by calling 'hack/upgrade-rollouts-manager/go-run.sh':
 # - It should always point to the same argo-rollouts-manager commit that is referenced in the version of argo-rollouts-manager that is in go.mod
